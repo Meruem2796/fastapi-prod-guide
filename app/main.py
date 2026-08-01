@@ -111,6 +111,38 @@ async def get_todos() -> list[TodoRecord]:
     return todos
 
 
+@app.put(
+    "/todos/{id}",
+    response_model=TodoId,
+    responses={
+        404: {"description": "Not Found", "model": NotFoundException},
+    },
+)
+async def update_todo(
+    payload: Todo,
+    id: str = Path(description="Todo ID", pattern=MONGO_ID_REGEX),
+) -> TodoId:
+    """
+    Update a Todo
+    """
+    now = datetime.utcnow()
+    update_result = await db.todos.update_one(
+        {"_id": ObjectId(id)},
+        {
+            "$set": {
+                "title": payload.title,
+                "completed": payload.completed,
+                "updated_date": now,
+            }
+        },
+    )
+
+    if update_result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    return TodoId(id=id)
+
+
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
