@@ -143,6 +143,27 @@ async def update_todo(
     return TodoId(id=id)
 
 
+@app.delete(
+    "/todos/{id}",
+    response_model=bool,
+    responses={
+        404: {"description": "Not Found", "model": NotFoundException},
+    },
+)
+async def delete_todo(
+    id: str = Path(description="Todo ID", pattern=MONGO_ID_REGEX),
+) -> bool:
+    """
+    Delete a Todo
+    """
+    delete_result = await db.todos.delete_one({"_id": ObjectId(id)})
+
+    if delete_result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    return True
+
+
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
