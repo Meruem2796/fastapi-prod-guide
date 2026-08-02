@@ -1,3 +1,5 @@
+import logging
+import sys
 from datetime import datetime
 
 import uvicorn
@@ -14,6 +16,7 @@ from pathlib import Path
 class Settings(BaseSettings):
     mongo_uri: str
     root_path: str = ""
+    logging_level: str = "INFO"
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parent.parent / ".env",
         extra="ignore",
@@ -21,6 +24,14 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+logging.basicConfig(
+    stream=sys.stdout,
+    level=settings.logging_level,
+    format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",  # noqa: E501
+    datefmt="%d/%b/%Y %H:%M:%S",
+)
+logger = logging.getLogger("my-todos")
 
 db_client = AsyncIOMotorClient(settings.mongo_uri)
 db = db_client.todoDb
