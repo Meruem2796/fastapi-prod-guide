@@ -13,6 +13,7 @@ from pathlib import Path
 
 class Settings(BaseSettings):
     mongo_uri: str
+    root_path: str = ""
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parent.parent / ".env",
         extra="ignore",
@@ -24,7 +25,20 @@ settings = Settings()
 db_client = AsyncIOMotorClient(settings.mongo_uri)
 db = db_client.todoDb
 
-app = FastAPI()
+description = """
+This is a fancy API built with [FastAPI🚀](https://fastapi.tiangolo.com/)
+
+📝 [Source Code](https://github.com/Meruem2796/fastapi-prod-guide)  
+🐞 [Issues](https://github.com/Meruem2796/fastapi-prod-guide/issues) 
+"""
+
+app = FastAPI(
+    title="My Todo App",
+    description=description,
+    version="1.0.0",
+    docs_url="/",
+    root_path=settings.root_path,
+)
 
 MONGO_ID_REGEX = r"^[a-f\d]{24}$"
 
