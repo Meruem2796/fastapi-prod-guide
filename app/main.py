@@ -1,14 +1,16 @@
 import logging
 import sys
+import time
 from datetime import datetime
+from typing import Any, Callable, TypeVar
 
 import uvicorn
 from bson import ObjectId
-from fastapi import FastAPI, HTTPException, Path
+from fastapi import FastAPI, HTTPException, Path, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
 
 from pathlib import Path
 
@@ -50,8 +52,18 @@ app = FastAPI(
     docs_url="/",
     root_path=settings.root_path,
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+    ],
+)
 
 MONGO_ID_REGEX = r"^[a-f\d]{24}$"
+F = TypeVar("F", bound=Callable[..., Any])
 
 
 class Todo(BaseModel):
@@ -70,6 +82,29 @@ class TodoRecord(TodoId, Todo):
 
 class NotFoundException(BaseModel):
     detail: str = "Not Found"
+
+
+@app.middleware("http")
+async def process_time_log_middleware(
+    request: Request, call_next: F
+) -> Response:
+    """
+    Add API process time in response headers and log calls
+    """
+    start_time = time.time()
+    response: Response = await call_next(request)
+    process_time = str(round(time.time() - start_time, 3))
+    response.headers["X-Process-Time"] = process_time
+
+    logger.info(
+        "Method=%s Path=%s StatusCode=%s ProcessTime=%s",
+        request.method,
+        request.url.path,
+        response.status_code,
+        process_time,
+    )
+
+    return response
 
 
 @app.post("/todos", response_model=TodoId)
