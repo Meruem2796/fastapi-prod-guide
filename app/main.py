@@ -7,13 +7,16 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.routers.todos import todos
+from app.routers.auth import auth
 from app.utilities.logger import logger
 
-description = """
+description = f"""
 This is a fancy API built with [FastAPI🚀](https://fastapi.tiangolo.com/)
 
+Authorize to get an Access Token from GitHub at <https://github.com/login/oauth/authorize?client_id={settings.github_oauth_client_id}&redirect_uri=http://localhost:8000/v1/auth/callback>
+
 📝 [Source Code](https://github.com/Meruem2796/fastapi-prod-guide)  
-🐞 [Issues](https://github.com/Meruem2796/fastapi-prod-guide/issues) 
+🐞 [Issues](https://github.com/dpills/fastapi-prod-guide/issues) 
 """
 
 app = FastAPI(
@@ -63,6 +66,12 @@ app.include_router(
     todos.router,
     prefix="/v1/todos",
     tags=["todos"],
+)
+
+app.include_router(
+    auth.router,
+    prefix="/v1/auth",
+    tags=["auth"],
 )
 
 

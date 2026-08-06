@@ -12,6 +12,7 @@ uvicorn = {extras = ["standard"], version = "^0.51.0"}
 python-dotenv = "^1.2.2"
 pydantic-settings = "^2.14.2"
 motor = "^3.7.1"
+httpx = "^0.28.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.16.0"
