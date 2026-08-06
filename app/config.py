@@ -5,6 +5,8 @@ from pathlib import Path
 
 class Settings(BaseSettings):
     mongo_uri: str
+    github_oauth_client_id: str
+    github_oauth_client_secret: str
     root_path: str = ""
     logging_level: str = "INFO"
     model_config = SettingsConfigDict(
