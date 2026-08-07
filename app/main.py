@@ -63,15 +63,15 @@ async def process_time_log_middleware(
 
 
 app.include_router(
-    todos.router,
-    prefix="/v1/todos",
-    tags=["todos"],
-)
-
-app.include_router(
     auth.router,
     prefix="/v1/auth",
     tags=["auth"],
+)
+
+app.include_router(
+    todos.router,
+    prefix="/v1/todos",
+    tags=["todos"],
 )
 
 
