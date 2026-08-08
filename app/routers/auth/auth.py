@@ -1,8 +1,10 @@
 import hashlib
+from typing import Annotated
 from datetime import datetime
 
 import httpx
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.config import settings
 from app.utilities.db import db
@@ -10,6 +12,7 @@ from app.utilities.db import db
 from .models import OauthException, OauthToken
 
 router = APIRouter()
+security = HTTPBearer()
 
 
 @router.get(
@@ -63,3 +66,47 @@ async def oauth_callback(
     )
 
     return OauthToken(access_token=access_token)
+
+
+async def validate_access_token(
+    access_token: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+) -> str:
+    """
+    Validate an access token
+    Returns the username or raises a 401 HTTPException
+    """
+    access_token_hash = hashlib.sha256(
+        access_token.credentials.encode()
+    ).hexdigest()
+    cached_token = await db.tokens.find_one(
+        {"access_token_hash": access_token_hash}
+    )
+
+    if cached_token:
+        user: str | None = cached_token.get("user")
+        if user:
+            return user
+
+    async with httpx.AsyncClient() as client:
+        user_result = await client.get(
+            "https://api.github.com/user",
+            headers={"Authorization": f"Bearer {access_token.credentials}"},
+        )
+
+        if user_result.status_code == 200:
+            user_data = user_result.json()
+            user = user_data.get("login")
+            if user:
+                await db.tokens.insert_one(
+                    {
+                        "user": user,
+                        "access_token_hash": access_token_hash,
+                        "created_date": datetime.utcnow(),
+                    },
+                )
+                return user
+
+    raise HTTPException(
+        status_code=401,
+        detail="Unauthorized",
+    )
