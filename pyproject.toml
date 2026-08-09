@@ -19,6 +19,11 @@ ruff = "^0.16.0"
 black = "^26.5.1"
 mypy = "^2.3.0"
 motor-types = "^1.0.0b4"
+pytest = "^9.1.1"
+coverage = "^7.15.4"
+mongomock-motor = "^0.0.36"
+pytest-httpx = "^0.36.2"
+pytest-asyncio = "^1.4.0"
 
 [tool.black]
 line-length = 88
