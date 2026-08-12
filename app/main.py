@@ -16,7 +16,7 @@ This is a fancy API built with [FastAPI🚀](https://fastapi.tiangolo.com/)
 Authorize to get an Access Token from GitHub at <https://github.com/login/oauth/authorize?client_id={settings.github_oauth_client_id}&redirect_uri=http://localhost:8000/v1/auth/callback>
 
 📝 [Source Code](https://github.com/Meruem2796/fastapi-prod-guide)  
-🐞 [Issues](https://github.com/dpills/fastapi-prod-guide/issues) 
+🐞 [Issues](https://github.com/Meruem2796/fastapi-prod-guide/issues) 
 """
 
 app = FastAPI(
