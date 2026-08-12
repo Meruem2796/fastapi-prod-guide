@@ -1,10 +1,8 @@
-import asyncio
 import hashlib
 from datetime import datetime
-from typing import Any, Generator
 
-import pytest
-from httpx import AsyncClient
+import pytest_asyncio
+from httpx import AsyncClient, ASGITransport
 
 from app.main import app
 from app.utilities.db import db
@@ -27,29 +25,22 @@ async def add_db_test_user() -> None:
         upsert=True,
     )
 
-    return None
 
-
-@pytest.fixture(scope="session")
-def event_loop() -> Generator[asyncio.AbstractEventLoop, Any, None]:
+@pytest_asyncio.fixture(autouse=True)
+async def seed_test_user() -> None:
     """
-    Override Event Loop
+    Ensure the test user/token exists in the DB before every test
     """
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-
-    # Add test user to DB
-    loop.run_until_complete(add_db_test_user())
-
-    yield loop
-    loop.close()
+    await add_db_test_user()
 
 
-@pytest.fixture()
-def test_client() -> AsyncClient:
+@pytest_asyncio.fixture()
+async def test_client() -> AsyncClient:
     """
     Create an instance of the client
     """
-    return AsyncClient(app=app, base_url="http://test", follow_redirects=True)
+    return AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=True,
+    )
