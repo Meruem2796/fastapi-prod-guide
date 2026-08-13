@@ -12,3 +12,6 @@ coverage*
 .pytest_cache
 htmlcov
 test-report.xml
+
+nginx/certs/*.pem
+nginx/certs/*.key
